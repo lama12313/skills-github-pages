@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تقسيم المجموعات</title>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
     <style>
         body {
             font-family: 'Cairo', sans-serif;
@@ -63,16 +63,6 @@
             color: #28a745;
         }
     </style>
-</head>
-<body>
-    <h1>تقسيم المجموعات</h1>
-    <p>اضغط على دورك للحصول على رقم مجموعتك:</p>
-    <button class="role" onclick="showGroup('uncle')">خوالي</button>
-    <button class="role" onclick="showGroup('aunt')">خالاتي</button>
-    <button class="role" onclick="showGroup('child')">العيال</button>
-    <div id="result"></div>
-    <button id="reset" onclick="resetGroups()">إعادة ضبط</button>
-
     <script>
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
@@ -151,5 +141,14 @@
 
         window.onload = listenForReset;
     </script>
+</head>
+<body>
+    <h1>تقسيم المجموعات</h1>
+    <p>اضغط على دورك للحصول على رقم مجموعتك:</p>
+    <button class="role" onclick="showGroup('uncle')">خوالي</button>
+    <button class="role" onclick="showGroup('aunt')">خالاتي</button>
+    <button class="role" onclick="showGroup('child')">العيال</button>
+    <div id="result"></div>
+    <button id="reset" onclick="resetGroups()">إعادة ضبط</button>
 </body>
 </html>
