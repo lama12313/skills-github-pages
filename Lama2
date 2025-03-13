@@ -63,6 +63,77 @@
             color: #28a745;
         }
     </style>
+    <script>
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "lama-bc514.firebaseapp.com",
+            databaseURL: "https://lama-bc514-default-rtdb.firebaseio.com/",
+            projectId: "lama-bc514",
+            storageBucket: "lama-bc514.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        window.resetGroups = function() {
+            firebase.database().ref("groups").set({}).then(() => {
+                firebase.database().ref("resetSignal").set(true);
+            }).catch((error) => {
+                console.error("Error resetting groups: ", error);
+                alert("حدث خطأ أثناء إعادة الضبط");
+            });
+        }
+
+        window.showGroup = function(role) {
+            const userId = localStorage.getItem(role);
+            if (userId) {
+                alert(`لقد اخترت بالفعل ومجموعتك هي: ${userId}`);
+                document.getElementById("result").textContent = `مجموعتك هي: ${userId}`;
+                return;
+            }
+
+            firebase.database().ref(`groups/${role}`).once("value").then((snapshot) => {
+                const counts = snapshot.val() || {};
+                const availableGroups = Object.keys(maxCounts[role]).filter(g => (counts[g] || 0) < maxCounts[role][g]);
+
+                if (availableGroups.length === 0) {
+                    alert("لا توجد مجموعات متاحة");
+                    return;
+                }
+
+                const groupNumber = availableGroups[Math.floor(Math.random() * availableGroups.length)];
+                counts[groupNumber] = (counts[groupNumber] || 0) + 1;
+
+                firebase.database().ref(`groups/${role}`).set(counts).then(() => {
+                    localStorage.setItem(role, groupNumber);
+                    document.getElementById("result").textContent = `مجموعتك هي: ${groupNumber}`;
+                    disableButtons();
+                });
+            });
+        }
+
+        function disableButtons() {
+            const buttons = document.querySelectorAll("button.role");
+            buttons.forEach(button => button.disabled = true);
+        }
+
+        function listenForReset() {
+            firebase.database().ref("resetSignal").on("value", (snapshot) => {
+                if (snapshot.val() === true) {
+                    localStorage.clear();
+                    document.getElementById("result").textContent = "";
+                    const buttons = document.querySelectorAll("button");
+                    buttons.forEach(button => button.disabled = false);
+                    alert("تمت إعادة ضبط المجموعات عبر جميع الأجهزة");
+                    firebase.database().ref("resetSignal").set(false);
+                }
+            });
+        }
+
+        window.onload = listenForReset;
+    </script>
 </head>
 <body>
     <h1>تقسيم المجموعات</h1>
