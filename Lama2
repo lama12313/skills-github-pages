@@ -74,28 +74,44 @@
             databaseURL: "YOUR_DATABASE_URL"
         };
 
+        // Initialize Firebase
         const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // Group size limits
+        const maxCounts = {
+            uncle: { 1: 2, 2: 1, 3: 1, 4: 1 },
+            aunt: { 1: 2, 2: 2, 3: 2, 4: 2 },
+            child: { 1: 2, 2: 2, 3: 2, 4: 2 }
+        };
+
         function showGroup(role) {
-            const userId = localStorage.getItem("groupNumber");
+            const userId = localStorage.getItem(role);
             if (userId) {
                 alert(`لقد اخترت بالفعل ومجموعتك هي: ${userId}`);
+                document.getElementById("result").textContent = `مجموعتك هي: ${userId}`;
                 return;
             }
-            firebase.database().ref("groups/" + role).once("value").then((snapshot) => {
+
+            firebase.database().ref(`groups/${role}`).once("value").then((snapshot) => {
                 const counts = snapshot.val() || {};
-                const availableGroups = Object.keys(counts).filter(g => counts[g] < maxCounts[role][g]);
+                const availableGroups = Object.keys(maxCounts[role]).filter(g => (counts[g] || 0) < maxCounts[role][g]);
+
                 if (availableGroups.length === 0) {
                     alert("لا توجد مجموعات متاحة");
                     return;
                 }
+
                 const groupNumber = availableGroups[Math.floor(Math.random() * availableGroups.length)];
                 counts[groupNumber] = (counts[groupNumber] || 0) + 1;
-                firebase.database().ref("groups/" + role).set(counts);
-                localStorage.setItem("groupNumber", groupNumber);
-                document.getElementById("result").textContent = `مجموعتك هي: ${groupNumber}`;
-                disableButtons();
+
+                // Store the group number in the database
+                firebase.database().ref(`groups/${role}`).set(counts).then(() => {
+                    // Save the group number locally to prevent multiple selections
+                    localStorage.setItem(role, groupNumber);
+                    document.getElementById("result").textContent = `مجموعتك هي: ${groupNumber}`;
+                    disableButtons();
+                });
             });
         }
 
@@ -105,11 +121,13 @@
         }
 
         function resetGroups() {
-            firebase.database().ref("groups").remove();
-            localStorage.removeItem("groupNumber");
-            document.getElementById("result").textContent = "";
-            const buttons = document.querySelectorAll("button");
-            buttons.forEach(button => button.disabled = false);
+            firebase.database().ref("groups").remove().then(() => {
+                localStorage.clear();
+                document.getElementById("result").textContent = "";
+                const buttons = document.querySelectorAll("button");
+                buttons.forEach(button => button.disabled = false);
+                alert("تمت إعادة ضبط المجموعات");
+            });
         }
     </script>
 </head>
