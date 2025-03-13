@@ -63,14 +63,13 @@
     </style>
     <script>
         const maxCounts = { uncle: { 1: 2, 2: 1, 3: 1 }, aunt: { 1: 2, 2: 2, 3: 2 }, child: { 1: 2, 2: 2, 3: 2 } };
-        let groupCounts = JSON.parse(localStorage.getItem('groupCounts')) || { uncle: { 1: 0, 2: 0, 3: 0 }, aunt: { 1: 0, 2: 0, 3: 0 }, child: { 1: 0, 2: 0, 3: 0 } };
+        let groupCounts = { uncle: { 1: 0, 2: 0, 3: 0 }, aunt: { 1: 0, 2: 0, 3: 0 }, child: { 1: 0, 2: 0, 3: 0 } };
 
         function getRandomGroup(role) {
             let group;
             const availableGroups = Object.keys(maxCounts[role]).filter(g => groupCounts[role][g] < maxCounts[role][g]);
             group = availableGroups[Math.floor(Math.random() * availableGroups.length)];
             groupCounts[role][group]++;
-            localStorage.setItem('groupCounts', JSON.stringify(groupCounts));
             return group;
         }
 
@@ -80,15 +79,23 @@
         }
 
         function showGroup(role) {
+            const storedGroup = localStorage.getItem("chosenGroup");
+            if (storedGroup) {
+                document.getElementById("result").textContent = `لقد اخترت مسبقاً ورقم مجموعتك هو: ${storedGroup}`;
+                disableButtons();
+                return;
+            }
+
             const groupNumber = getRandomGroup(role);
+            localStorage.setItem("chosenGroup", groupNumber);
             const resultDiv = document.getElementById("result");
             resultDiv.textContent = `مجموعتك هي: ${groupNumber}`;
             disableButtons();
         }
 
         function resetGroups() {
+            localStorage.removeItem("chosenGroup");
             groupCounts = { uncle: { 1: 0, 2: 0, 3: 0 }, aunt: { 1: 0, 2: 0, 3: 0 }, child: { 1: 0, 2: 0, 3: 0 } };
-            localStorage.setItem('groupCounts', JSON.stringify(groupCounts));
             const resultDiv = document.getElementById("result");
             resultDiv.textContent = "";
             const buttons = document.querySelectorAll("button");
