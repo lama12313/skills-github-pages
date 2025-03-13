@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تقسيم المجموعات</title>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         body {
             font-family: 'Cairo', sans-serif;
@@ -102,7 +102,6 @@
             if (userId) {
                 alert(`لقد اخترت بالفعل ومجموعتك هي: ${userId}`);
                 document.getElementById("result").textContent = `مجموعتك هي: ${userId}`;
-                disableButtons();
                 return;
             }
 
