@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تقسيم المجموعات</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js"></script>
     <style>
         body {
             font-family: 'Cairo', sans-serif;
@@ -75,7 +75,7 @@
         };
 
         // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
+        const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
         const maxCounts = {
@@ -83,6 +83,19 @@
             aunt: { 1: 2, 2: 2, 3: 2 },
             child: { 1: 2, 2: 2, 3: 2 }
         };
+
+        function listenForReset() {
+            firebase.database().ref("resetSignal").on("value", (snapshot) => {
+                if (snapshot.val() === true) {
+                    localStorage.clear();
+                    document.getElementById("result").textContent = "";
+                    const buttons = document.querySelectorAll("button");
+                    buttons.forEach(button => button.disabled = false);
+                    alert("تمت إعادة ضبط المجموعات عبر جميع الأجهزة");
+                    firebase.database().ref("resetSignal").set(false);
+                }
+            });
+        }
 
         function showGroup(role) {
             const userId = localStorage.getItem(role);
@@ -92,7 +105,7 @@
                 return;
             }
 
-            db.ref(`groups/${role}`).once("value").then((snapshot) => {
+            firebase.database().ref(`groups/${role}`).once("value").then((snapshot) => {
                 const counts = snapshot.val() || {};
                 const availableGroups = Object.keys(maxCounts[role]).filter(g => (counts[g] || 0) < maxCounts[role][g]);
 
@@ -104,7 +117,7 @@
                 const groupNumber = availableGroups[Math.floor(Math.random() * availableGroups.length)];
                 counts[groupNumber] = (counts[groupNumber] || 0) + 1;
 
-                db.ref(`groups/${role}`).set(counts).then(() => {
+                firebase.database().ref(`groups/${role}`).set(counts).then(() => {
                     localStorage.setItem(role, groupNumber);
                     document.getElementById("result").textContent = `مجموعتك هي: ${groupNumber}`;
                     disableButtons();
@@ -118,17 +131,15 @@
         }
 
         function resetGroups() {
-            db.ref("groups").set({}).then(() => {
-                localStorage.clear();
-                document.getElementById("result").textContent = "";
-                const buttons = document.querySelectorAll("button");
-                buttons.forEach(button => button.disabled = false);
-                alert("تمت إعادة ضبط المجموعات");
+            firebase.database().ref("groups").set({}).then(() => {
+                firebase.database().ref("resetSignal").set(true);
             }).catch((error) => {
                 console.error("Error resetting groups: ", error);
                 alert("حدث خطأ أثناء إعادة الضبط");
             });
         }
+
+        window.onload = listenForReset;
     </script>
 </head>
 <body>
