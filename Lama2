@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تقسيم المجموعات</title>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js"></script>
     <style>
         body {
             font-family: 'Cairo', sans-serif;
@@ -88,7 +88,7 @@
                 if (snapshot.val() === true) {
                     localStorage.clear();
                     document.getElementById("result").textContent = "";
-                    const buttons = document.querySelectorAll("button");
+                    const buttons = document.querySelectorAll("button.role");
                     buttons.forEach(button => button.disabled = false);
                     alert("تمت إعادة ضبط المجموعات عبر جميع الأجهزة");
                     firebase.database().ref("resetSignal").set(false);
@@ -139,8 +139,6 @@
         }
 
         window.onload = listenForReset;
-        window.showGroup = showGroup;
-        window.resetGroups = resetGroups;
     </script>
 </head>
 <body>
