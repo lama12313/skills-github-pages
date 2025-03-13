@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تقسيم المجموعات</title>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
     <style>
         body {
             font-family: 'Cairo', sans-serif;
@@ -67,17 +67,18 @@
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_AUTH_DOMAIN",
-            databaseURL: "YOUR_DATABASE_URL",
             projectId: "YOUR_PROJECT_ID",
             storageBucket: "YOUR_STORAGE_BUCKET",
             messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            appId: "YOUR_APP_ID",
+            databaseURL: "YOUR_DATABASE_URL"
         };
 
         // Initialize Firebase
         const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // Group size limits
         const maxCounts = {
             uncle: { 1: 2, 2: 1, 3: 1, 4: 1 },
             aunt: { 1: 2, 2: 2, 3: 2, 4: 2 },
@@ -104,17 +105,12 @@
                 const groupNumber = availableGroups[Math.floor(Math.random() * availableGroups.length)];
                 counts[groupNumber] = (counts[groupNumber] || 0) + 1;
 
+                // Store the group number in the database
                 firebase.database().ref(`groups/${role}`).set(counts).then(() => {
                     localStorage.setItem(role, groupNumber);
                     document.getElementById("result").textContent = `مجموعتك هي: ${groupNumber}`;
                     disableButtons();
-                }).catch((error) => {
-                    console.error("Error saving data: ", error);
-                    alert("خطأ في حفظ البيانات! حاول مرة أخرى.");
                 });
-            }).catch((error) => {
-                console.error("Error reading data: ", error);
-                alert("خطأ في قراءة البيانات! تأكد من الاتصال بالإنترنت.");
             });
         }
 
@@ -130,9 +126,6 @@
                 const buttons = document.querySelectorAll("button");
                 buttons.forEach(button => button.disabled = false);
                 alert("تمت إعادة ضبط المجموعات");
-            }).catch((error) => {
-                console.error("Error resetting data: ", error);
-                alert("خطأ في إعادة الضبط!");
             });
         }
     </script>
