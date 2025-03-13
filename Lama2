@@ -1,30 +1,143 @@
-function showGroup(role) {
-    console.log("Button clicked for role:", role); // Check if button click works
-    const userId = localStorage.getItem("groupNumber");
-    if (userId) {
-        alert(`لقد اخترت بالفعل ومجموعتك هي: ${userId}`);
-        return;
-    }
-    firebase.database().ref("groups/" + role).once("value").then((snapshot) => {
-        console.log("Firebase response received"); // Check if Firebase responds
-        const counts = snapshot.val() || {};
-        const availableGroups = Object.keys(maxCounts[role]).filter(g => counts[g] < maxCounts[role][g]);
-        console.log("Available groups:", availableGroups); // Check available groups
-        if (availableGroups.length === 0) {
-            alert("لا توجد مجموعات متاحة");
-            return;
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تقسيم المجموعات</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js"></script>
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            text-align: center;
+            margin: 50px;
+            background-color: #f4f4f4;
+            color: #333;
         }
-        const groupNumber = availableGroups[Math.floor(Math.random() * availableGroups.length)];
-        counts[groupNumber] = (counts[groupNumber] || 0) + 1;
-        firebase.database().ref("groups/" + role).set(counts).then(() => {
-            console.log("Group number saved:", groupNumber); // Check if save was successful
-            localStorage.setItem("groupNumber", groupNumber);
-            document.getElementById("result").textContent = `مجموعتك هي: ${groupNumber}`;
-            disableButtons();
-        }).catch((error) => {
-            console.error("Error saving to Firebase:", error); // Log any save errors
-        });
-    }).catch((error) => {
-        console.error("Error retrieving data from Firebase:", error); // Log any read errors
-    });
-}
+        h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            color: #007bff;
+        }
+        p {
+            font-size: 20px;
+            margin-bottom: 30px;
+        }
+        button {
+            padding: 15px 30px;
+            margin: 10px;
+            font-size: 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #aaa;
+            cursor: not-allowed;
+        }
+        #reset {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background-color: #ffdddd;
+            color: #333;
+            padding: 8px 16px;
+            font-size: 16px;
+            border-radius: 5px;
+            opacity: 0.6;
+            transition: opacity 0.3s ease;
+        }
+        #reset:hover {
+            opacity: 1;
+            background-color: #ffaaaa;
+        }
+        #result {
+            margin-top: 30px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #28a745;
+        }
+    </style>
+    <script>
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID",
+            databaseURL: "YOUR_DATABASE_URL"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Group size limits
+        const maxCounts = {
+            uncle: { 1: 2, 2: 1, 3: 1, 4: 1 },
+            aunt: { 1: 2, 2: 2, 3: 2, 4: 2 },
+            child: { 1: 2, 2: 2, 3: 2, 4: 2 }
+        };
+
+        function showGroup(role) {
+            const userId = localStorage.getItem(role);
+            if (userId) {
+                alert(`لقد اخترت بالفعل ومجموعتك هي: ${userId}`);
+                document.getElementById("result").textContent = `مجموعتك هي: ${userId}`;
+                return;
+            }
+
+            firebase.database().ref(`groups/${role}`).once("value").then((snapshot) => {
+                const counts = snapshot.val() || {};
+                const availableGroups = Object.keys(maxCounts[role]).filter(g => (counts[g] || 0) < maxCounts[role][g]);
+
+                if (availableGroups.length === 0) {
+                    alert("لا توجد مجموعات متاحة");
+                    return;
+                }
+
+                const groupNumber = availableGroups[Math.floor(Math.random() * availableGroups.length)];
+                counts[groupNumber] = (counts[groupNumber] || 0) + 1;
+
+                // Store the group number in the database
+                firebase.database().ref(`groups/${role}`).set(counts).then(() => {
+                    // Save the group number locally to prevent multiple selections
+                    localStorage.setItem(role, groupNumber);
+                    document.getElementById("result").textContent = `مجموعتك هي: ${groupNumber}`;
+                    disableButtons();
+                });
+            });
+        }
+
+        function disableButtons() {
+            const buttons = document.querySelectorAll("button.role");
+            buttons.forEach(button => button.disabled = true);
+        }
+
+        function resetGroups() {
+            firebase.database().ref("groups").remove().then(() => {
+                localStorage.clear();
+                document.getElementById("result").textContent = "";
+                const buttons = document.querySelectorAll("button");
+                buttons.forEach(button => button.disabled = false);
+                alert("تمت إعادة ضبط المجموعات");
+            });
+        }
+    </script>
+</head>
+<body>
+    <h1>تقسيم المجموعات</h1>
+    <p>اضغط على دورك للحصول على رقم مجموعتك:</p>
+    <button class="role" onclick="showGroup('uncle')">خوالي</button>
+    <button class="role" onclick="showGroup('aunt')">خالاتي</button>
+    <button class="role" onclick="showGroup('child')">العيال</button>
+    <div id="result"></div>
+    <button id="reset" onclick="resetGroups()">إعادة ضبط</button>
+</body>
+</html>
