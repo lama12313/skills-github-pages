@@ -77,16 +77,26 @@
         const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        window.resetGroups = function() {
-            firebase.database().ref("groups").set({}).then(() => {
-                firebase.database().ref("resetSignal").set(true);
-            }).catch((error) => {
-                console.error("Error resetting groups: ", error);
-                alert("حدث خطأ أثناء إعادة الضبط");
+        const maxCounts = {
+            uncle: { 1: 2, 2: 1, 3: 1 },
+            aunt: { 1: 2, 2: 2, 3: 2 },
+            child: { 1: 2, 2: 2, 3: 2 }
+        };
+
+        function listenForReset() {
+            firebase.database().ref("resetSignal").on("value", (snapshot) => {
+                if (snapshot.val() === true) {
+                    localStorage.clear();
+                    document.getElementById("result").textContent = "";
+                    const buttons = document.querySelectorAll("button");
+                    buttons.forEach(button => button.disabled = false);
+                    alert("تمت إعادة ضبط المجموعات عبر جميع الأجهزة");
+                    firebase.database().ref("resetSignal").set(false);
+                }
             });
         }
 
-        window.showGroup = function(role) {
+        function showGroup(role) {
             const userId = localStorage.getItem(role);
             if (userId) {
                 alert(`لقد اخترت بالفعل ومجموعتك هي: ${userId}`);
@@ -119,20 +129,18 @@
             buttons.forEach(button => button.disabled = true);
         }
 
-        function listenForReset() {
-            firebase.database().ref("resetSignal").on("value", (snapshot) => {
-                if (snapshot.val() === true) {
-                    localStorage.clear();
-                    document.getElementById("result").textContent = "";
-                    const buttons = document.querySelectorAll("button");
-                    buttons.forEach(button => button.disabled = false);
-                    alert("تمت إعادة ضبط المجموعات عبر جميع الأجهزة");
-                    firebase.database().ref("resetSignal").set(false);
-                }
+        function resetGroups() {
+            firebase.database().ref("groups").set({}).then(() => {
+                firebase.database().ref("resetSignal").set(true);
+            }).catch((error) => {
+                console.error("Error resetting groups: ", error);
+                alert("حدث خطأ أثناء إعادة الضبط");
             });
         }
 
         window.onload = listenForReset;
+        window.showGroup = showGroup;
+        window.resetGroups = resetGroups;
     </script>
 </head>
 <body>
