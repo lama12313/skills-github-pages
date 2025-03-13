@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تقسيم المجموعات</title>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js"></script>
     <style>
         body {
             font-family: 'Cairo', sans-serif;
@@ -66,19 +66,18 @@
     <script>
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
+            authDomain: "lama-bc514.firebaseapp.com",
+            databaseURL: "https://lama-bc514-default-rtdb.firebaseio.com/",
+            projectId: "lama-bc514",
+            storageBucket: "lama-bc514.appspot.com",
             messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID",
-            databaseURL: "YOUR_DATABASE_URL"
+            appId: "YOUR_APP_ID"
         };
 
         // Initialize Firebase
         const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Group size limits
         const maxCounts = {
             uncle: { 1: 2, 2: 1, 3: 1, 4: 1 },
             aunt: { 1: 2, 2: 2, 3: 2, 4: 2 },
@@ -105,7 +104,6 @@
                 const groupNumber = availableGroups[Math.floor(Math.random() * availableGroups.length)];
                 counts[groupNumber] = (counts[groupNumber] || 0) + 1;
 
-                // Store the group number in the database
                 firebase.database().ref(`groups/${role}`).set(counts).then(() => {
                     localStorage.setItem(role, groupNumber);
                     document.getElementById("result").textContent = `مجموعتك هي: ${groupNumber}`;
