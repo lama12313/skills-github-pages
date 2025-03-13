@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تقسيم المجموعات</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
     <style>
         body {
             font-family: 'Cairo', sans-serif;
@@ -75,7 +75,7 @@
         };
 
         // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
+        const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
         const maxCounts = {
@@ -88,11 +88,11 @@
             firebase.database().ref("resetSignal").on("value", (snapshot) => {
                 const resetTimestamp = snapshot.val();
                 const lastReset = localStorage.getItem("lastReset");
-                if (!lastReset || resetTimestamp > lastReset) {
+                if (resetTimestamp && resetTimestamp !== lastReset) {
                     localStorage.clear();
                     localStorage.setItem("lastReset", resetTimestamp);
                     document.getElementById("result").textContent = "";
-                    const buttons = document.querySelectorAll("button");
+                    const buttons = document.querySelectorAll("button.role");
                     buttons.forEach(button => button.disabled = false);
                     alert("تمت إعادة ضبط المجموعات عبر جميع الأجهزة");
                 }
@@ -133,9 +133,9 @@
         }
 
         function resetGroups() {
-            const timestamp = Date.now();
+            const resetTimestamp = new Date().getTime();
             firebase.database().ref("groups").set({}).then(() => {
-                firebase.database().ref("resetSignal").set(timestamp);
+                firebase.database().ref("resetSignal").set(resetTimestamp);
             }).catch((error) => {
                 console.error("Error resetting groups: ", error);
                 alert("حدث خطأ أثناء إعادة الضبط");
