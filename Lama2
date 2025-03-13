@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تقسيم المجموعات</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js"></script>
     <style>
         body {
             font-family: 'Cairo', sans-serif;
@@ -62,15 +64,39 @@
         }
     </style>
     <script>
-        const maxCounts = { uncle: { 1: 2, 2: 1, 3: 1 }, aunt: { 1: 2, 2: 2, 3: 2 }, child: { 1: 2, 2: 2, 3: 2 } };
-        let groupCounts = { uncle: { 1: 0, 2: 0, 3: 0 }, aunt: { 1: 0, 2: 0, 3: 0 }, child: { 1: 0, 2: 0, 3: 0 } };
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID",
+            databaseURL: "YOUR_DATABASE_URL"
+        };
 
-        function getRandomGroup(role) {
-            let group;
-            const availableGroups = Object.keys(maxCounts[role]).filter(g => groupCounts[role][g] < maxCounts[role][g]);
-            group = availableGroups[Math.floor(Math.random() * availableGroups.length)];
-            groupCounts[role][group]++;
-            return group;
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        function showGroup(role) {
+            const userId = localStorage.getItem("groupNumber");
+            if (userId) {
+                alert(`لقد اخترت بالفعل ومجموعتك هي: ${userId}`);
+                return;
+            }
+            firebase.database().ref("groups/" + role).once("value").then((snapshot) => {
+                const counts = snapshot.val() || {};
+                const availableGroups = Object.keys(counts).filter(g => counts[g] < maxCounts[role][g]);
+                if (availableGroups.length === 0) {
+                    alert("لا توجد مجموعات متاحة");
+                    return;
+                }
+                const groupNumber = availableGroups[Math.floor(Math.random() * availableGroups.length)];
+                counts[groupNumber] = (counts[groupNumber] || 0) + 1;
+                firebase.database().ref("groups/" + role).set(counts);
+                localStorage.setItem("groupNumber", groupNumber);
+                document.getElementById("result").textContent = `مجموعتك هي: ${groupNumber}`;
+                disableButtons();
+            });
         }
 
         function disableButtons() {
@@ -78,26 +104,10 @@
             buttons.forEach(button => button.disabled = true);
         }
 
-        function showGroup(role) {
-            const storedGroup = localStorage.getItem("chosenGroup");
-            if (storedGroup) {
-                document.getElementById("result").textContent = `لقد اخترت مسبقاً ورقم مجموعتك هو: ${storedGroup}`;
-                disableButtons();
-                return;
-            }
-
-            const groupNumber = getRandomGroup(role);
-            localStorage.setItem("chosenGroup", groupNumber);
-            const resultDiv = document.getElementById("result");
-            resultDiv.textContent = `مجموعتك هي: ${groupNumber}`;
-            disableButtons();
-        }
-
         function resetGroups() {
-            localStorage.removeItem("chosenGroup");
-            groupCounts = { uncle: { 1: 0, 2: 0, 3: 0 }, aunt: { 1: 0, 2: 0, 3: 0 }, child: { 1: 0, 2: 0, 3: 0 } };
-            const resultDiv = document.getElementById("result");
-            resultDiv.textContent = "";
+            firebase.database().ref("groups").remove();
+            localStorage.removeItem("groupNumber");
+            document.getElementById("result").textContent = "";
             const buttons = document.querySelectorAll("button");
             buttons.forEach(button => button.disabled = false);
         }
