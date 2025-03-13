@@ -84,10 +84,14 @@
             child: { 1: 2, 2: 2, 3: 2 }
         };
 
+        function clearLocalData() {
+            localStorage.clear();
+        }
+
         function listenForReset() {
             firebase.database().ref("resetSignal").on("value", (snapshot) => {
                 if (snapshot.val() === true) {
-                    localStorage.clear();
+                    clearLocalData();
                     document.getElementById("result").textContent = "";
                     const buttons = document.querySelectorAll("button");
                     buttons.forEach(button => button.disabled = false);
@@ -139,7 +143,10 @@
             });
         }
 
-        window.onload = listenForReset;
+        window.onload = () => {
+            clearLocalData();
+            listenForReset();
+        };
     </script>
 </head>
 <body>
