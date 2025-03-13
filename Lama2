@@ -28,7 +28,7 @@
             child: { 1: 2, 2: 2, 3: 2, 4: 2 }
         };
 
-        function showGroup(role) {
+        window.showGroup = function(role) {
             const userId = localStorage.getItem(role);
             if (userId) {
                 alert(`لقد اخترت بالفعل ومجموعتك هي: ${userId}`);
@@ -62,7 +62,7 @@
             buttons.forEach(button => button.disabled = true);
         }
 
-        function resetGroups() {
+        window.resetGroups = function() {
             remove(ref(db, "groups")).then(() => {
                 localStorage.clear();
                 document.getElementById("result").textContent = "";
