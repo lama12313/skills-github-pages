@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تقسيم المجموعات</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
         body {
             font-family: 'Cairo', sans-serif;
@@ -75,7 +75,7 @@
         };
 
         // Initialize Firebase
-        const app = firebase.initializeApp(firebaseConfig);
+        firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
         const maxCounts = {
@@ -86,13 +86,15 @@
 
         function listenForReset() {
             firebase.database().ref("resetSignal").on("value", (snapshot) => {
-                if (snapshot.val() === true) {
+                const resetTimestamp = snapshot.val();
+                const lastReset = localStorage.getItem("lastReset");
+                if (!lastReset || resetTimestamp > lastReset) {
                     localStorage.clear();
+                    localStorage.setItem("lastReset", resetTimestamp);
                     document.getElementById("result").textContent = "";
                     const buttons = document.querySelectorAll("button");
                     buttons.forEach(button => button.disabled = false);
                     alert("تمت إعادة ضبط المجموعات عبر جميع الأجهزة");
-                    firebase.database().ref("resetSignal").set(false);
                 }
             });
         }
@@ -131,8 +133,9 @@
         }
 
         function resetGroups() {
+            const timestamp = Date.now();
             firebase.database().ref("groups").set({}).then(() => {
-                firebase.database().ref("resetSignal").set(true);
+                firebase.database().ref("resetSignal").set(timestamp);
             }).catch((error) => {
                 console.error("Error resetting groups: ", error);
                 alert("حدث خطأ أثناء إعادة الضبط");
